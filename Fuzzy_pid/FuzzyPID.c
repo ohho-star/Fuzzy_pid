@@ -180,9 +180,9 @@ void Get_grad_membership(FuzzyPID* pid,float erro, float erro_c)//计算误差�
     //误差的微分
     if (erro_c > pid->ec_membership_values[0] && erro_c < pid->ec_membership_values[6])//如果误差微分erro_c在ec_membership_values数组定义的论域范围内，则
     {
-        for ( i = 0; i < pid->num_area - 2; i++)
+        for ( i = 0; i < pid->num_area - 2; i++)//遍历6个的模糊区域
         {
-            if (erro_c >= pid->ec_membership_values[i] && erro_c <= pid->ec_membership_values[i + 1])
+            if (erro_c >= pid->ec_membership_values[i] && erro_c <= pid->ec_membership_values[i + 1])////如果erro_c在ec_membership_values[]第i和i+1之间
             {
                 pid->ec_gradmembership[0] = -(erro_c - pid->ec_membership_values[i + 1]) / (pid->ec_membership_values[i + 1] - pid->ec_membership_values[i]);
                 pid->ec_gradmembership[1] = 1 + (erro_c - pid->ec_membership_values[i + 1]) / (pid->ec_membership_values[i + 1] - pid->ec_membership_values[i]);
@@ -207,46 +207,6 @@ void Get_grad_membership(FuzzyPID* pid,float erro, float erro_c)//计算误差�
             pid->ec_gradmembership[1] = 0;
             pid->ec_grad_index[0] = 6;
             pid->ec_grad_index[1] = -1;
-        }
-    }
-
-}
-
-// //获取输出增量kp, ki, kd的总隶属度 /
-void GetSumGrad(FuzzyPID* pid)
-{
-    int i,j;
-    //划分八个区域
-    for ( i = 0; i <= pid->num_area - 1; i++)
-    {
-        pid->KpgradSums[i] = 0;
-        pid->KigradSums[i] = 0;
-        pid->KdgradSums[i] = 0;
-        //把PID的各个隶属值清零
-    }
-    for ( i = 0; i < 2; i++)//循环两次
-    {
-        if (pid->e_grad_index[i] == -1)//误差有没有爆表
-        {
-            continue;
-        }
-        for ( j = 0; j < 2; j++)//
-        {
-            if (pid->ec_grad_index[j] != -1)//误差的微分有没有爆表
-            {
-                int indexKp = pid->Kp_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
-                int indexKi = pid->Ki_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
-                int indexKd = pid->Kd_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
-                //gradSums[index] = gradSums[index] + (e_gradmembership[i] * ec_gradmembership[j])* Kp_rule_list[e_grad_index[i]][ec_grad_index[j]];
-                pid->KpgradSums[indexKp] = pid->KpgradSums[indexKp] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
-                pid->KigradSums[indexKi] = pid->KigradSums[indexKi] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
-                pid->KdgradSums[indexKd] = pid->KdgradSums[indexKd] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
-            }
-            else
-            {
-                continue;
-            }
-
         }
     }
 
