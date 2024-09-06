@@ -212,6 +212,46 @@ void Get_grad_membership(FuzzyPID* pid,float erro, float erro_c)//计算误差�
 
 }
 
+// //获取输出增量kp, ki, kd的总隶属度 /
+void GetSumGrad(FuzzyPID* pid)
+{
+    int i,j;
+    //划分八个区域
+    for ( i = 0; i <= pid->num_area - 1; i++)
+    {
+        pid->KpgradSums[i] = 0;
+        pid->KigradSums[i] = 0;
+        pid->KdgradSums[i] = 0;
+        //把PID的各个隶属值清零
+    }
+    for ( i = 0; i < 2; i++)//循环两次
+    {
+        if (pid->e_grad_index[i] == -1)//误差有没有爆表
+        {
+            continue;
+        }
+        for ( j = 0; j < 2; j++)//
+        {
+            if (pid->ec_grad_index[j] != -1)//误差的微分有没有爆表
+            {
+                int indexKp = pid->Kp_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
+                int indexKi = pid->Ki_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
+                int indexKd = pid->Kd_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
+                //gradSums[index] = gradSums[index] + (e_gradmembership[i] * ec_gradmembership[j])* Kp_rule_list[e_grad_index[i]][ec_grad_index[j]];
+                pid->KpgradSums[indexKp] = pid->KpgradSums[indexKp] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
+                pid->KigradSums[indexKi] = pid->KigradSums[indexKi] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
+                pid->KdgradSums[indexKd] = pid->KdgradSums[indexKd] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
+            }
+            else
+            {
+                continue;
+            }
+
+        }
+    }
+
+}
+
 //计算输出增量kp, kd, ki对应论域值//
 void GetOUT(FuzzyPID* pid)
 {
