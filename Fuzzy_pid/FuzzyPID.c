@@ -117,11 +117,11 @@ void FuzzyPID_Init(FuzzyPID* pid)  //构造函数，配置模糊PID控制器的�
     }
     for ( i = 0; i < 7; i++)
     {
-        pid->e_membership_values[i] = values[i];//输入e的隶属值初始化
-        pid->ec_membership_values[i] = values[i];//输入de/dt的隶属值初始化
-        pid->kp_menbership_values[i] = values[i];//输出增量kp的隶属值初始化
-        pid->ki_menbership_values[i] = values[i];//输出增量ki的隶属值初始化
-        pid->kd_menbership_values[i] = values[i];//输出增量kd的隶属值初始化
+        pid->e_membership_values[i] = values[i];//输入e的隶属值初始化，使其对应values数组
+        pid->ec_membership_values[i] = values[i];//输入de/dt的隶属值初始化，使其对应values数组
+        pid->kp_menbership_values[i] = values[i];//输出增量kp的隶属值初始化，使其对应values数组
+        pid->ki_menbership_values[i] = values[i];//输出增量ki的隶属值初始化，使其对应values数组
+        pid->kd_menbership_values[i] = values[i];//输出增量kd的隶属值初始化，使其对应values数组
         pid->fuzzyoutput_menbership_values[i] = values[i];
         pid->gradSums[i] = 0;
         pid->KpgradSums[i] = 0;//输出增量kp总的隶属度初始化为0
@@ -134,51 +134,51 @@ void FuzzyPID_Init(FuzzyPID* pid)  //构造函数，配置模糊PID控制器的�
 
 
 //输入e与de/dt隶属度计算函数///
-void Get_grad_membership(FuzzyPID* pid,float erro, float erro_c)
+void Get_grad_membership(FuzzyPID* pid,float erro, float erro_c)//计算误差（erro）和误差的微分（erro_c）的隶属度。接受三个参数：指向FuzzyPID结构体的指针pid、误差erro和误差变化率erro_c。
 {
-    int i;
+    int i;//声明一个整型变量i，用于循环控制。
     //当误差在这个范围
-    if (erro > pid->e_membership_values[0] && erro < pid->e_membership_values[6])
+    if (erro > pid->e_membership_values[0] && erro < pid->e_membership_values[6])//如果误差erro在e_membership_values数组定义的论域范围内，则
     {
 
         //6个区域
-        for ( i = 0; i < pid->num_area - 2; i++)
+        for ( i = 0; i < pid->num_area - 2; i++)//遍历6个的模糊区域
         {
             //如果误差在区间区域内
-            if (erro >= pid->e_membership_values[i] && erro <= pid->e_membership_values[i + 1])
+            if (erro >= pid->e_membership_values[i] && erro <= pid->e_membership_values[i + 1])//如果erro在e_membership_values[]第i和i+1之间
             {
-                //e的隶属度
-                //PM
-                pid->e_gradmembership[0] = -(erro - pid->e_membership_values[i + 1]) / (pid->e_membership_values[i + 1] - pid->e_membership_values[i]);
+                //e的隶属度，一个e对应两个模糊集都有隶属度的值
+                //对于PM正中模糊集合的隶属度
+                pid->e_gradmembership[0] = -(erro - pid->e_membership_values[i + 1]) / (pid->e_membership_values[i + 1] - pid->e_membership_values[i]);//e的隶属度数组的第一个变量给PM对应的隶属度
                 //PB
-                pid->e_gradmembership[1] = 1 + (erro - pid->e_membership_values[i + 1]) / (pid->e_membership_values[i + 1] - pid->e_membership_values[i]);
+                pid->e_gradmembership[1] = 1 + (erro - pid->e_membership_values[i + 1]) / (pid->e_membership_values[i + 1] - pid->e_membership_values[i]);//e的隶属度数组的第二个变量给PM对应的隶属度
                 //记录是在哪两个区间内
-                pid->e_grad_index[0] = i;
-                pid->e_grad_index[1] = i + 1;
+                pid->e_grad_index[0] = i;//输入e隶属度在规则表的索引数组第一个变量为i（决定了e的隶属度属于哪个模糊集合）
+                pid->e_grad_index[1] = i + 1;//输入e隶属度在规则表的索引数组第二个变量为i+1
                 break;
             }
         }
     }
-    else
+    else//如果误差erro不在e_membership_values数组定义的范围内，（处理误差在模糊区域范围外的情况。）则
     {
         //如果误差的止小于等于论域的最小值
-        if (erro <= pid->e_membership_values[0])
+        if (erro <= pid->e_membership_values[0])//如果erro小于等于论域的最小值
         {
-            pid->e_gradmembership[0] = 1;
-            pid->e_gradmembership[1] = 0;
-            pid->e_grad_index[0] = 0;
-            pid->e_grad_index[1] = -1;
+            pid->e_gradmembership[0] = 1;//e的隶属度数组第一个变量为1
+            pid->e_gradmembership[1] = 0;//e的隶属度数组第一个变量为0
+            pid->e_grad_index[0] = 0;//将e_grad_index数组的第一个元素设置为 0，指示论域最小区域的索引。
+            pid->e_grad_index[1] = -1;//将e_grad_index数组的第二个元素设置为 -1，表示没有后续区域（超出定义范围）。
         }//超出范围了
-        else if (erro >= pid->e_membership_values[6])
+        else if (erro >= pid->e_membership_values[6])如果erro大于等于论域的最大值
         {
-            pid->e_gradmembership[0] = 1;
-            pid->e_gradmembership[1] = 0;
-            pid->e_grad_index[0] = 6;
-            pid->e_grad_index[1] = -1;
+            pid->e_gradmembership[0] = 1;//e的隶属度数组第一个变量为1
+            pid->e_gradmembership[1] = 0;//e的隶属度数组第一个变量为0
+            pid->e_grad_index[0] = 6;//将e_grad_index数组的第一个元素设置为 0，指示论域最大区域的索引。
+            pid->e_grad_index[1] = -1;//将e_grad_index数组的第二个元素设置为 -1，表示没有后续区域（超出定义范围）。
         }
     }
     //误差的微分
-    if (erro_c > pid->ec_membership_values[0] && erro_c < pid->ec_membership_values[6])
+    if (erro_c > pid->ec_membership_values[0] && erro_c < pid->ec_membership_values[6])//如果误差微分erro_c在ec_membership_values数组定义的论域范围内，则
     {
         for ( i = 0; i < pid->num_area - 2; i++)
         {
