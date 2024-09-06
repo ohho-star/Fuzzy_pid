@@ -213,26 +213,27 @@ void Get_grad_membership(FuzzyPID* pid,float erro, float erro_c)//计算误差�
 }
 
 // //获取输出增量kp, ki, kd的总隶属度 /
-void GetSumGrad(FuzzyPID* pid)
+void GetSumGrad(FuzzyPID* pid)//计算模糊PID控制器中增量 Kp, Ki, 和 Kd 的总隶属度。
 {
-    int i,j;
+    int i,j;//声明两个整型变量 i 和 j，用于循环迭代。
     //划分八个区域
-    for ( i = 0; i <= pid->num_area - 1; i++)
+    for ( i = 0; i <= pid->num_area - 1; i++)//执行7次循环
     {
-        pid->KpgradSums[i] = 0;
-        pid->KigradSums[i] = 0;
-        pid->KdgradSums[i] = 0;
+        pid->KpgradSums[i] = 0;//输出增量kp总的隶属度清0
+        pid->KigradSums[i] = 0;//输出增量ki总的隶属度清0
+        pid->KdgradSums[i] = 0;//输出增量kd总的隶属度清0
         //把PID的各个隶属值清零
     }
     for ( i = 0; i < 2; i++)//循环两次
     {
-        if (pid->e_grad_index[i] == -1)//误差有没有爆表
+        if (pid->e_grad_index[i] == -1)//误差爆表，如果e_grad_indexe隶属度在规则表的索引的第i个元素为-1
+          //通过检查 pid->e_grad_index[i] 和 pid->ec_grad_index[j] 是否为-1，判断当前误差和误差变化率是否有效。如果某个索引为-1，说明该状态的误差超出了定义范围，因此跳过该计算。
         {
-            continue;
+            continue;//如果在 continue 语句后面还有其他代码，continue 语句会跳过这些代码，直接进入下一次for迭代。
         }
-        for ( j = 0; j < 2; j++)//
+        for ( j = 0; j < 2; j++)//如果误差e_grad_indexe隶属度在规则表的索引的第i个元素不是-1，循环两次
         {
-            if (pid->ec_grad_index[j] != -1)//误差的微分有没有爆表
+            if (pid->ec_grad_index[j] != -1)//误差的微分有没有爆表，如果误差的微分ec_grad_index隶属度在规则表的索引的第j个元素不是-1，则
             {
                 int indexKp = pid->Kp_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
                 int indexKi = pid->Ki_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
