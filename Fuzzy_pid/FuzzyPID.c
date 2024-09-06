@@ -38,7 +38,7 @@ int  Fuzzy_rule[7][7] = { {PB,PB,PB,PB,PM,ZO,ZO},
                                {ZO,ZO,ZO,NM,NB,NB,NB},
                                {ZO,NS,NB,NB,NB,NB,NB} };
 float values[7] = { -3,-2,-1,0,1,2,3 }; //输入e的隶属值
-void FuzzyPID_Init(FuzzyPID* pid)  //构造函数
+void FuzzyPID_Init(FuzzyPID* pid)  //构造函数，初始化函数，用于配置模糊PID控制器的结构体 FuzzyPID
 {
     int i, j;
     pid->num_area = 8;
