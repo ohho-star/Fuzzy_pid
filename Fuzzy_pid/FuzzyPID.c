@@ -95,17 +95,17 @@ typedef struct FuzzyPID
 void FuzzyPID_Init(FuzzyPID* pid)  //构造函数，配置模糊PID控制器的结构体 FuzzyPID。
 {
     int i, j;
-    pid->num_area = 8;
-    pid->kp = 0;
-    pid->ki = 0;
-    pid->kd = 0;
-    pid->fuzzy_output = 0;
-    pid->qdetail_kp = 0;
-    pid->qdetail_ki = 0;
-    pid->qdetail_kd = 0;
+    pid->num_area = 8;//区域个数为8
+    pid->kp = 0;//pid参数kp为0
+    pid->ki = 0;//pid参数ki为0
+    pid->kd = 0;//pid参数kd为0
+    pid->fuzzy_output = 0;//模糊控制器输出初始值，设置为 0。
+    pid->qdetail_kp = 0;//增量kp对应论域中的值为0
+    pid->qdetail_ki = 0;//增量ki对应论域中的值为0
+    pid->qdetail_kd = 0;//增量kd对应论域中的值为0
     pid->qfuzzy_output = 0;
     pid->errosum = 0;
-    for ( i = 0; i < 7; i++)
+    for ( i = 0; i < 7; i++)//通过循环初始化模糊控制表
     {
         for ( j = 0; j < 7; j++)
         {
