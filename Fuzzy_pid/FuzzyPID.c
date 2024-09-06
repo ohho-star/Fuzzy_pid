@@ -38,7 +38,61 @@ int  Fuzzy_rule[7][7] = { {PB,PB,PB,PB,PM,ZO,ZO},
                                {ZO,ZO,ZO,NM,NB,NB,NB},
                                {ZO,NS,NB,NB,NB,NB,NB} };
 float values[7] = { -3,-2,-1,0,1,2,3 }; //输入e的隶属值
-void FuzzyPID_Init(FuzzyPID* pid)  //构造函数
+
+typedef struct FuzzyPID
+{
+       int  num_area ; //划分区域个数
+    //float e_max;  //误差做大值
+    //float e_min;  //误差最小值
+    //float ec_max;  //误差变化最大值
+    //float ec_min;  //误差变化最小值
+    //float kp_max, kp_min;
+    float e_membership_values[7] ; //输入e的隶属值
+    float ec_membership_values[7] ;//输入de/dt的隶属值
+    float kp_menbership_values[7] ;//输出增量kp的隶属值
+    float ki_menbership_values[7] ; //输出增量ki的隶属值
+    float kd_menbership_values[7] ;  //输出增量kd的隶属值
+    float fuzzyoutput_menbership_values[7];
+
+    //int menbership_values[7] = {-3,-};
+    float kp;                       //PID参数kp
+    float ki;                       //PID参数ki
+    float kd;                       //PID参数kd
+    float qdetail_kp;               //增量kp对应论域中的值
+    float qdetail_ki;               //增量ki对应论域中的值
+    float qdetail_kd;               //增量kd对应论域中的值
+    float qfuzzy_output;
+    float detail_kp;                //输出增量kp
+    float detail_ki;                //输出增量ki
+    float detail_kd;                //输出增量kd
+    float fuzzy_output;
+    float qerro;                    //输入e对应论域中的值
+    float qerro_c;                  //输入de/dt对应论域中的值
+    float errosum;
+    float e_gradmembership[2];      //输入e的隶属度
+    float ec_gradmembership[2];     //输入de/dt的隶属度
+    int e_grad_index[2];            //输入e隶属度在规则表的索引
+    int ec_grad_index[2];           //输入de/dt隶属度在规则表的索引
+    float gradSums[7] ;
+    float KpgradSums[7];   //输出增量kp总的隶属度
+    float KigradSums[7] ;   //输出增量ki总的隶属度
+    float KdgradSums[7] ;   //输出增量kd总的隶属度
+   
+
+    int  Kp_rule_list[7][7];
+
+    int  Ki_rule_list[7][7];
+
+    int  Kd_rule_list[7][7];
+
+    int  Fuzzy_rule_list[7][7];
+
+
+    //private:
+
+}FuzzyPID;
+
+void FuzzyPID_Init(FuzzyPID* pid)  //构造函数，配置模糊PID控制器的结构体 FuzzyPID。
 {
     int i, j;
     pid->num_area = 8;
