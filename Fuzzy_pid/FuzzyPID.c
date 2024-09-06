@@ -49,7 +49,7 @@ typedef struct FuzzyPID
     //float kp_max, kp_min;
     float e_membership_values[7] ; //输入e的隶属值
     float ec_membership_values[7] ;//输入de/dt的隶属值
-    float kp_menbership_values[7] ;//输出增量kp的隶属值
+    float kp_menbership_values[7] ;//+
     float ki_menbership_values[7] ; //输出增量ki的隶属值
     float kd_menbership_values[7] ;  //输出增量kd的隶属值
     float fuzzyoutput_menbership_values[7];
@@ -239,11 +239,11 @@ void GetSumGrad(FuzzyPID* pid)//计算模糊PID控制器中增量 Kp, Ki, 和 Kd
                 int indexKi = pid->Ki_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
                 int indexKd = pid->Kd_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
                 //gradSums[index] = gradSums[index] + (e_gradmembership[i] * ec_gradmembership[j])* Kp_rule_list[e_grad_index[i]][ec_grad_index[j]];
-                pid->KpgradSums[indexKp] = pid->KpgradSums[indexKp] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
+                pid->KpgradSums[indexKp] = pid->KpgradSums[indexKp] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);//输出增量kp总的隶属度=输出增量kp上一次总的隶属度+
                 pid->KigradSums[indexKi] = pid->KigradSums[indexKi] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
                 pid->KdgradSums[indexKd] = pid->KdgradSums[indexKd] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
             }
-            else
+            else//否则，误差的微分ec_grad_index隶属度在规则表的索引的第j个元素是-1，进入下一次迭代
             {
                 continue;
             }
@@ -257,9 +257,9 @@ void GetSumGrad(FuzzyPID* pid)//计算模糊PID控制器中增量 Kp, Ki, 和 Kd
 void GetOUT(FuzzyPID* pid)
 {
     int i;
-    for ( i = 0; i < pid->num_area - 1; i++)
+    for ( i = 0; i < pid->num_area - 1; i++)//执行7次循环
     {
-        pid->qdetail_kp +=pid->kp_menbership_values[i] * pid->KpgradSums[i];
+        pid->qdetail_kp +=pid->kp_menbership_values[i] * pid->KpgradSums[i];//增量kp对应论域中的值=增量kp对应论域中的值+
         pid->qdetail_ki += pid->ki_menbership_values[i] * pid->KigradSums[i];
         pid->qdetail_kd += pid->kd_menbership_values[i] * pid->KdgradSums[i];
     }
