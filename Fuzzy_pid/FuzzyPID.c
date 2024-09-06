@@ -117,16 +117,16 @@ void FuzzyPID_Init(FuzzyPID* pid)  //构造函数，配置模糊PID控制器的�
     }
     for ( i = 0; i < 7; i++)
     {
-        pid->e_membership_values[i] = values[i];
-        pid->ec_membership_values[i] = values[i];
-        pid->kp_menbership_values[i] = values[i];
-        pid->ki_menbership_values[i] = values[i];
-        pid->kd_menbership_values[i] = values[i];
+        pid->e_membership_values[i] = values[i];//输入e的隶属值初始化
+        pid->ec_membership_values[i] = values[i];//输入de/dt的隶属值初始化
+        pid->kp_menbership_values[i] = values[i];//输出增量kp的隶属值初始化
+        pid->ki_menbership_values[i] = values[i];//输出增量ki的隶属值初始化
+        pid->kd_menbership_values[i] = values[i];//输出增量kd的隶属值初始化
         pid->fuzzyoutput_menbership_values[i] = values[i];
         pid->gradSums[i] = 0;
-        pid->KpgradSums[i] = 0;
-        pid->KigradSums[i] = 0;
-        pid->KdgradSums[i] = 0;
+        pid->KpgradSums[i] = 0;//输出增量kp总的隶属度初始化为0
+        pid->KigradSums[i] = 0;//输出增量ki总的隶属度初始化为0
+        pid->KdgradSums[i] = 0;//输出增量kd总的隶属度初始化为0
     }
 }
 
