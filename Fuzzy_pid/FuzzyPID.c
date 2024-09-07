@@ -42,14 +42,14 @@ float values[7] = { -3,-2,-1,0,1,2,3 }; //输入e的隶属值
 typedef struct FuzzyPID
 {
        int  num_area ; //划分区域个数
-    //float e_max;  //误差做大值
+    //float e_max;  //误差最大值
     //float e_min;  //误差最小值
     //float ec_max;  //误差变化最大值
     //float ec_min;  //误差变化最小值
     //float kp_max, kp_min;
     float e_membership_values[7] ; //输入e的隶属值
     float ec_membership_values[7] ;//输入de/dt的隶属值
-    float kp_menbership_values[7] ;//+
+    float kp_menbership_values[7] ;//输出增量kp的隶属值
     float ki_menbership_values[7] ; //输出增量ki的隶属值
     float kd_menbership_values[7] ;  //输出增量kd的隶属值
     float fuzzyoutput_menbership_values[7];
@@ -330,7 +330,7 @@ float Quantization(float maximum, float minimum, float x)//将 x 映射到一个
 }
 
 //反区间映射函数
-float Inverse_quantization(float maximum, float minimum, float qvalues)
+float Inverse_quantization(float maximum, float minimum, float qvalues)//将量化值qvalues从 [-3, 3]区间映射回 [minimum, maximum] 区间
 {
     float x = (maximum - minimum) * (qvalues + 3) / 6 + minimum;
     return x;
