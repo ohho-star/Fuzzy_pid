@@ -266,29 +266,29 @@ void GetOUT(FuzzyPID* pid)//计算并更新三个增量kp, ki, 和 kd 对应的�
 }
 
 //模糊PID控制实现函数/
-float FuzzyPIDcontroller(FuzzyPID* pid, range* rang, Error* error, float Target, float actual)
+float FuzzyPIDcontroller(FuzzyPID* pid, range* rang, Error* error, float Target, float actual)//模糊PID控制器的函数，计算控制输出。接受FuzzyPID、range、Error 结构体的指针，以及目标值Target 和实际值actual。
 {
     
-    error->erro_ppre = error->erro_pre;
-    error->erro_pre = error->erro;
-    error->erro = Target - actual;
-    error->erro_c = error->erro - error->erro_pre;
-    pid->errosum += error->erro;
+    error->erro_ppre = error->erro_pre;//将上一次误差值赋给上上次误差值。
+    error->erro_pre = error->erro;//将当前误差值赋给上一次误差值。
+    error->erro = Target - actual;//计算当前误差，即目标值与实际值之差。
+    error->erro_c = error->erro - error->erro_pre;//计算误差的微分，即当前误差与上一次误差之差。
+    pid->errosum += error->erro;//将当前误差值累加到误差和中。
     //Arear_dipart(e_max, e_min, ec_max, ec_min, kp_max, kp_min,ki_max,ki_min,kd_max,kd_min);
-    pid->qerro = Quantization(rang->e_max, rang->e_min, error->erro);//区间映射
-    pid->qerro_c = Quantization(rang->ec_max, rang->ec_min, error->erro_c);//区间映射
+    pid->qerro = Quantization(rang->e_max, rang->e_min, error->erro);//区间映射，对当前误差值进行量化处理，将其映射到指定范围。
+    pid->qerro_c = Quantization(rang->ec_max, rang->ec_min, error->erro_c);//区间映射，对误差微分进行量化处理。
     //把他们缩小到0123范围内
-    Get_grad_membership(pid,pid->qerro, pid->qerro_c);
+    Get_grad_membership(pid,pid->qerro, pid->qerro_c);//根据量化后的误差和误差微分计算模糊隶属度。
     //获取输出增量kp, ki, kd的总隶属度
-    GetSumGrad(pid);
+    GetSumGrad(pid);//计算隶属度的总和，用于决定PID参数的调整。
     //计算输出增量kp, kd, ki对应论域值//
-    GetOUT(pid);
-    pid->detail_kp = Inverse_quantization(rang->kp_max, rang->kp_min, pid->qdetail_kp);
-    pid->detail_ki = Inverse_quantization(rang->ki_max, rang->ki_min, pid->qdetail_ki);
-    pid->detail_kd = Inverse_quantization(rang->kd_max, rang->kd_min, pid->qdetail_kd);
-    pid->qdetail_kd = 0;
-    pid->qdetail_ki = 0;
-    pid->qdetail_kp = 0;
+    GetOUT(pid);//计算PID增量的输出。
+    pid->detail_kp = Inverse_quantization(rang->kp_max, rang->kp_min, pid->qdetail_kp);//对量化后的PID增量qdetail_kp（kp对应论域中的值）进行反量化，得到实际的增量值。
+    pid->detail_ki = Inverse_quantization(rang->ki_max, rang->ki_min, pid->qdetail_ki);//对量化后的PID增量qdetail_kp（ki对应论域中的值）进行反量化，得到实际的增量值。
+    pid->detail_kd = Inverse_quantization(rang->kd_max, rang->kd_min, pid->qdetail_kd);//对量化后的PID增量qdetail_kp（kd对应论域中的值）进行反量化，得到实际的增量值。
+    pid->qdetail_kd = 0;//将量化增量设置为0（这一步可能有些冗余，因为前面已经处理了）。
+    pid->qdetail_ki = 0;//将量化增量设置为0
+    pid->qdetail_kp = 0;//将量化增量设置为0
     /*if (qdetail_kp >= kp_max)
         qdetail_kp = kp_max;
     else if (qdetail_kp <= kp_min)
@@ -301,26 +301,26 @@ float FuzzyPIDcontroller(FuzzyPID* pid, range* rang, Error* error, float Target,
         qdetail_kd = kd_max;
     else if (qdetail_kd <= kd_min)
         qdetail_kd = kd_min;*/
-    pid->kp = pid->kp + pid->detail_kp;
-    pid->ki = pid->ki + pid->detail_ki;
-    pid->kd  =pid->kd + pid->detail_kd;
+    pid->kp = pid->kp + pid->detail_kp;//更新 kp 的值。
+    pid->ki = pid->ki + pid->detail_ki;//更新 ki 的值。
+    pid->kd  =pid->kd + pid->detail_kd;//更新 kd 的值。
     //确定范围
-    if (pid->kp < 0)
+    if (pid->kp < 0)//确保 kp 不小于0
         pid->kp = 0;
-    if (pid->ki < 0)
+    if (pid->ki < 0)//确保 ki 不小于0。
         pid->ki = 0;
-    if (pid->kd < 0)
+    if (pid->kd < 0)//确保 kd 不小于0。
         pid->kd = 0;
-    pid->detail_kp = 0;
+    pid->detail_kp = 0;//将增量重置为0
     pid->detail_ki = 0;
     pid->detail_kd = 0;
     //增量式PID
-    float output = pid->kp * (error->erro - error->erro_pre) + pid->ki * error->erro + pid->kd * (error->erro - 2 * error->erro_pre + error->erro_ppre);
-    return output;
+    float output = pid->kp * (error->erro - error->erro_pre) + pid->ki * error->erro + pid->kd * (error->erro - 2 * error->erro_pre + error->erro_ppre);//根据增量式PID公式计算输出值。
+    return output;//返回计算得到的控制输出。
 }
 
 ///区间映射函数///
-float Quantization(float maximum, float minimum, float x)
+float Quantization(float maximum, float minimum, float x)//将 x 映射到一个新的区间[-3,3].它接收三个参数：maximum（区间的最大值），minimum（区间的最小值），和 x（待量化的数值），并返回一个 float 类型的结果。
 {
     float qvalues = 6.0 * (x - minimum) / (maximum - minimum) - 3;
     //float qvalues=6.0*()
