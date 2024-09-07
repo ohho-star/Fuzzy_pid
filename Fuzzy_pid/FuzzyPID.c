@@ -47,11 +47,11 @@ typedef struct FuzzyPID
     //float ec_max;  //误差变化最大值
     //float ec_min;  //误差变化最小值
     //float kp_max, kp_min;
-    float e_membership_values[7] ; //输入e的隶属值
-    float ec_membership_values[7] ;//输入de/dt的隶属值
-    float kp_menbership_values[7] ;//输出增量kp的隶属值
-    float ki_menbership_values[7] ; //输出增量ki的隶属值
-    float kd_menbership_values[7] ;  //输出增量kd的隶属值
+    float e_membership_values[7] ; //输入e的隶属值（只能是-3、-2...3)
+    float ec_membership_values[7] ;//输入de/dt的隶属值（只能是-3、-2...3)
+    float kp_menbership_values[7] ;//输出增量kp的隶属值（只能是-3、-2...3)
+    float ki_menbership_values[7] ; //输出增量ki的隶属值（只能是-3、-2...3)
+    float kd_menbership_values[7] ;  //输出增量kd的隶属值（只能是-3、-2...3)
     float fuzzyoutput_menbership_values[7];
 
     //int menbership_values[7] = {-3,-};
@@ -69,8 +69,8 @@ typedef struct FuzzyPID
     float qerro;                    //输入e对应论域中的值
     float qerro_c;                  //输入de/dt对应论域中的值
     float errosum;
-    float e_gradmembership[2];      //输入e的隶属度
-    float ec_gradmembership[2];     //输入de/dt的隶属度
+    float e_gradmembership[2];      //输入e的隶属度(是[-3,3]之间的值)
+    float ec_gradmembership[2];     //输入de/dt的隶属度(是[-3,3]之间的值)
     int e_grad_index[2];            //输入e隶属度在规则表的索引
     int ec_grad_index[2];           //输入de/dt隶属度在规则表的索引
     float gradSums[7] ;
@@ -235,11 +235,11 @@ void GetSumGrad(FuzzyPID* pid)//计算模糊PID控制器中增量 Kp, Ki, 和 Kd
         {
             if (pid->ec_grad_index[j] != -1)//误差的微分有没有爆表，如果误差的微分ec_grad_index隶属度在规则表的索引的第j个元素不是-1，则
             {
-                int indexKp = pid->Kp_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
-                int indexKi = pid->Ki_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
-                int indexKd = pid->Kd_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;
+                int indexKp = pid->Kp_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;//输出增量kp总的隶属度数组的指数=kp规则表对应的值+3；就变成了0~6，7个数可以作为增量kp总的隶属度数组的指数
+                int indexKi = pid->Ki_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;//输出增量ki总的隶属度数组的指数=ki规则表对应的值+3；就变成了0~6，7个数可以作为增量ki总的隶属度数组的指数
+                int indexKd = pid->Kd_rule_list[pid->e_grad_index[i]][pid->ec_grad_index[j]] + 3;//输出增量kd总的隶属度数组的指数=kd规则表对应的值+3；就变成了0~6，7个数可以作为增量kd总的隶属度数组的指数
                 //gradSums[index] = gradSums[index] + (e_gradmembership[i] * ec_gradmembership[j])* Kp_rule_list[e_grad_index[i]][ec_grad_index[j]];
-                pid->KpgradSums[indexKp] = pid->KpgradSums[indexKp] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);//输出增量kp总的隶属度=输出增量kp上一次总的隶属度+
+                pid->KpgradSums[indexKp] = pid->KpgradSums[indexKp] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);//输出增量kp总的隶属度=输出增量kp上一次总的隶属度+误差对应隶属度的数值*误差变量对应隶属度的数值
                 pid->KigradSums[indexKi] = pid->KigradSums[indexKi] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
                 pid->KdgradSums[indexKd] = pid->KdgradSums[indexKd] + (pid->e_gradmembership[i] * pid->ec_gradmembership[j]);
             }
@@ -259,7 +259,7 @@ void GetOUT(FuzzyPID* pid)//计算并更新三个增量kp, ki, 和 kd 对应的�
     int i;
     for ( i = 0; i < pid->num_area - 1; i++)//执行7次循环
     {
-        pid->qdetail_kp +=pid->kp_menbership_values[i] * pid->KpgradSums[i];//增量kp对应论域中的值=增量kp对应论域中的值+
+        pid->qdetail_kp +=pid->kp_menbership_values[i] * pid->KpgradSums[i];//增量kp对应论域中的值=增量kp对应论域中的值+输出增量kd的隶属值（只能是[-3,3]）*输出增量kp总的隶属度
         pid->qdetail_ki += pid->ki_menbership_values[i] * pid->KigradSums[i];
         pid->qdetail_kd += pid->kd_menbership_values[i] * pid->KdgradSums[i];
     }
@@ -286,7 +286,7 @@ float FuzzyPIDcontroller(FuzzyPID* pid, range* rang, Error* error, float Target,
     pid->detail_kp = Inverse_quantization(rang->kp_max, rang->kp_min, pid->qdetail_kp);//对量化后的PID增量qdetail_kp（kp对应论域中的值）进行反量化，得到实际的增量值。
     pid->detail_ki = Inverse_quantization(rang->ki_max, rang->ki_min, pid->qdetail_ki);//对量化后的PID增量qdetail_kp（ki对应论域中的值）进行反量化，得到实际的增量值。
     pid->detail_kd = Inverse_quantization(rang->kd_max, rang->kd_min, pid->qdetail_kd);//对量化后的PID增量qdetail_kp（kd对应论域中的值）进行反量化，得到实际的增量值。
-    pid->qdetail_kd = 0;//将量化增量设置为0（这一步可能有些冗余，因为前面已经处理了）。
+    pid->qdetail_kd = 0;//将量化增量设置为0。
     pid->qdetail_ki = 0;//将量化增量设置为0
     pid->qdetail_kp = 0;//将量化增量设置为0
     /*if (qdetail_kp >= kp_max)
