@@ -254,7 +254,7 @@ void GetSumGrad(FuzzyPID* pid)//计算模糊PID控制器中增量 Kp, Ki, 和 Kd
 }
 
 //计算输出增量kp, kd, ki对应论域值//
-void GetOUT(FuzzyPID* pid)
+void GetOUT(FuzzyPID* pid)//计算并更新三个增量kp, ki, 和 kd 对应的论域值。
 {
     int i;
     for ( i = 0; i < pid->num_area - 1; i++)//执行7次循环
