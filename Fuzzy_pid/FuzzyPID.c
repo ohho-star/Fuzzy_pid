@@ -58,21 +58,21 @@ typedef struct FuzzyPID
     float kp;                       //PID参数kp
     float ki;                       //PID参数ki
     float kd;                       //PID参数kd
-    float qdetail_kp;               //增量kp对应论域中的值
-    float qdetail_ki;               //增量ki对应论域中的值
-    float qdetail_kd;               //增量kd对应论域中的值
+    float qdetail_kp;               //增量kp对应论域中的值（未完全解模糊化，在[-3,3]之间的数值，下一步就是量化）
+    float qdetail_ki;               //增量ki对应论域中的值（未完全解模糊化，在[-3,3]之间的数值，下一步就是量化）
+    float qdetail_kd;               //增量kd对应论域中的值（未完全解模糊化，在[-3,3]之间的数值，下一步就是量化）
     float qfuzzy_output;
-    float detail_kp;                //输出增量kp
-    float detail_ki;                //输出增量ki
-    float detail_kd;                //输出增量kd
+    float detail_kp;                //输出增量kp（完全解模糊化（量化后的）以后具体的数值）
+    float detail_ki;                //输出增量ki（完全解模糊化（量化后的）以后具体的数值）
+    float detail_kd;                //输出增量kd（完全解模糊化（量化后的）以后具体的数值）
     float fuzzy_output;
-    float qerro;                    //输入e对应论域中的值
-    float qerro_c;                  //输入de/dt对应论域中的值
+    float qerro;                    //输入e对应论域中的值（量化处理后在[-3,3]之间的数值）
+    float qerro_c;                  //输入de/dt对应论域中的值（量化处理后在[-3,3]之间的数值）
     float errosum;
-    float e_gradmembership[2];      //输入e的隶属度(是[-3,3]之间的值)
-    float ec_gradmembership[2];     //输入de/dt的隶属度(是[-3,3]之间的值)
-    int e_grad_index[2];            //输入e隶属度在规则表的索引
-    int ec_grad_index[2];           //输入de/dt隶属度在规则表的索引
+    float e_gradmembership[2];      //输入e的隶属度(对应两个模糊量的隶属度，是[-3,3]之间的值)
+    float ec_gradmembership[2];     //输入de/dt的隶属度((对应两个模糊量的隶属度，是[-3,3]之间的值)
+    int e_grad_index[2];            //输入e隶属度在规则表的索引（可以指示着对应哪两个模糊量）
+    int ec_grad_index[2];           //输入de/dt隶属度在规则表的索引（可以指示着对应哪两个模糊量）
     float gradSums[7] ;
     float KpgradSums[7];   //输出增量kp总的隶属度
     float KigradSums[7] ;   //输出增量ki总的隶属度
